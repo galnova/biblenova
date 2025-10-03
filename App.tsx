@@ -1,45 +1,93 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text, Pressable, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import styles from './styles';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+const Stack = createNativeStackNavigator();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+// --- Home Screen ---
+function HomeScreen({ navigation }: any) {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.h1}>BibleNova</Text>
+        <Text style={styles.intro}>
+          Welcome to BibleNova. Choose a bible verse below.
+        </Text>
+
+        <View style={styles.grid}>
+          <Pressable style={styles.card} onPress={() => navigation.navigate('OldTestament')}>
+            <Text style={styles.cardTitle}>Old Testament</Text>
+          </Pressable>
+
+          <Pressable style={styles.card} onPress={() => navigation.navigate('NewTestament')}>
+            <Text style={styles.cardTitle}>New Testament</Text>
+          </Pressable>
+
+          <Pressable style={styles.card} onPress={() => navigation.navigate('Apocrypha')}>
+            <Text style={styles.cardTitle}>Apocrypha</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
+// --- Sub Screens ---
+function OldTestamentScreen({ navigation }: any) {
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
+      <View style={styles.page}>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.sectionTitle}>Old Testament</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+function NewTestamentScreen({ navigation }: any) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
+      <View style={styles.page}>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.sectionTitle}>New Testament</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
 
-export default App;
+function ApocryphaScreen({ navigation }: any) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
+      <View style={styles.page}>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.sectionTitle}>Apocrypha</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+// --- Main App ---
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="OldTestament" component={OldTestamentScreen} />
+        <Stack.Screen name="NewTestament" component={NewTestamentScreen} />
+        <Stack.Screen name="Apocrypha" component={ApocryphaScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
