@@ -6,9 +6,8 @@ export default StyleSheet.create({
     backgroundColor: '#0d0d0d', // ensures top/bottom use dark background
   },
   container: {
-    flexGrow: 1,
+    flex: 1,
     padding: 16,
-    alignItems: 'center',
     backgroundColor: '#0d0d0d',
   },
   h1: {
@@ -16,7 +15,8 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     color: '#00f2ea',
     marginBottom: 8,
-    marginTop: 40, // ⬅️ pushes title lower under the clock/camera
+    marginTop: 40, // pushes title lower under the clock/camera
+    textAlign: 'center',
   },
   intro: {
     fontSize: 16,
@@ -29,19 +29,18 @@ export default StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
-card: {
-  backgroundColor: '#171717',
-  padding: 5,
-  margin: 8,
-  borderRadius: 12,
-  width: 100,
-  height: 100,            // ⬅️ add a fixed height for vertical centering
-  alignItems: 'center',   // ⬅️ centers horizontally
-  justifyContent: 'center', // ⬅️ centers vertically
-  borderWidth: 1,
-  borderColor: '#333',
-},
-
+  card: {
+    backgroundColor: '#171717',
+    padding: 5,
+    margin: 8,
+    borderRadius: 12,
+    width: 100,
+    height: 100,            // fixed height for vertical centering
+    alignItems: 'center',   // centers horizontally
+    justifyContent: 'center', // centers vertically
+    borderWidth: 1,
+    borderColor: '#333',
+  },
   cardTitle: {
     color: '#fff',
     fontWeight: '600',
@@ -64,10 +63,32 @@ card: {
     paddingHorizontal: 14,
     borderRadius: 8,
     alignSelf: 'flex-start',
-    marginTop: 40, // ⬅️ pushes back button lower below status bar
+    marginTop: 40, // pushes back button lower below status bar
   },
   backBtnText: {
     color: '#111',
     fontWeight: 'bold',
+  },
+
+  // 🔹 Added for your Bible list & verses
+  item: {
+    backgroundColor: '#171717',
+    padding: 14,
+    marginVertical: 6,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  text: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  verse: {
+    color: '#e5e5e5',
+    fontSize: 16,
+    marginBottom: 12,
+    lineHeight: 22,
   },
 });
