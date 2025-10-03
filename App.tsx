@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, Text, ScrollView, Pressable, SafeAreaView, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  SafeAreaView,
+  ActivityIndicator,
+  TextInput,
+  Modal,
+} from "react-native";
+import FA5Icon from "react-native-vector-icons/FontAwesome5"; // 👈 Use FontAwesome5
 import styles from "./styles";
 
-// Bible books & chapter counts (all 66)
 const bibleBooks = [
   { name: "Genesis", chapters: 50 },
   { name: "Exodus", chapters: 40 },
@@ -74,13 +83,104 @@ const bibleBooks = [
   { name: "Revelation", chapters: 22 },
 ];
 
-// Navigation
 const Stack = createNativeStackNavigator();
 
+// --- Shared Top Bar (Back + Input + Hamburger)
+function TopBar({ navigation, route }) {
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [input, setInput] = useState("");
+
+  const handleGoTo = () => {
+    if (!input) return;
+    const [bookName, chapStr] = input.split(" ");
+    const book = bibleBooks.find(
+      (b) => b.name.toLowerCase() === bookName.toLowerCase()
+    );
+    const chap = parseInt(chapStr, 10);
+    if (book && chap && chap <= book.chapters) {
+      navigation.navigate("Verses", { book: book.name, chapter: chap });
+      setInput("");
+    } else {
+      alert("Invalid book or chapter");
+    }
+  };
+
+  return (
+    <View style={styles.topBar}>
+      {/* Only show back if not on Books (landing) */}
+{route.name !== "Books" && navigation.canGoBack() && (
+  <Pressable
+    style={styles.backBtn}
+    onPress={() => navigation.goBack()}
+  >
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <FA5Icon name="arrow-left" solid size={16} color="#111" />
+      <Text style={[styles.backBtnText, { marginLeft: 6 }]}>Back</Text>
+    </View>
+  </Pressable>
+)}
+
+
+      <TextInput
+        style={styles.topBarInput}
+        placeholder="Go To (e.g. John 3)"
+        placeholderTextColor="#aaa"
+        value={input}
+        onChangeText={setInput}
+        onSubmitEditing={handleGoTo}
+      />
+
+      <Pressable
+        style={styles.topBarHamburger}
+        onPress={() => setMenuVisible(true)}
+      >
+        <FA5Icon name="bars" solid size={24} color="#fff" />
+      </Pressable>
+
+      {/* Modal Menu */}
+      <Modal visible={menuVisible} animationType="slide" transparent>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.8)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#222",
+              padding: 20,
+              borderRadius: 10,
+              width: "80%",
+            }}
+          >
+            <Text style={{ fontSize: 18, color: "#fff", marginBottom: 20 }}>
+              ⚙️ Settings Menu
+            </Text>
+            <Pressable
+              onPress={() => setMenuVisible(false)}
+              style={{
+                padding: 12,
+                backgroundColor: "#444",
+                borderRadius: 6,
+                marginTop: 10,
+              }}
+            >
+              <Text style={{ color: "#fff", textAlign: "center" }}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 // Book list screen
-function BookScreen({ navigation }) {
+function BookScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safeArea}>
+      <TopBar navigation={navigation} route={route} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.h1}>📖 BibleNova</Text>
         <Text style={styles.intro}>Choose a book to begin reading</Text>
@@ -100,14 +200,12 @@ function BookScreen({ navigation }) {
   );
 }
 
-// Chapter list
+// Chapter list screen
 function ChapterScreen({ route, navigation }) {
   const { book } = route.params;
   return (
     <SafeAreaView style={styles.page}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backBtnText}>← Back</Text>
-      </Pressable>
+      <TopBar navigation={navigation} route={route} />
       <ScrollView>
         <Text style={styles.sectionTitle}>{book.name}</Text>
         <View style={styles.grid}>
@@ -115,7 +213,9 @@ function ChapterScreen({ route, navigation }) {
             <Pressable
               key={ch}
               style={styles.card}
-              onPress={() => navigation.navigate("Verses", { book: book.name, chapter: ch })}
+              onPress={() =>
+                navigation.navigate("Verses", { book: book.name, chapter: ch })
+              }
             >
               <Text style={styles.cardTitle}>{ch}</Text>
             </Pressable>
@@ -126,32 +226,52 @@ function ChapterScreen({ route, navigation }) {
   );
 }
 
-// Verses screen (fetches live from Bible API)
+// Verses screen
 function VerseScreen({ route, navigation }) {
   const { book, chapter } = route.params;
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch(`https://bible-api.com/${book}+${chapter}`)
-      .then((res) => res.json())
+    const q = encodeURIComponent(`${book} ${chapter}`);
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 12000);
+
+    fetch(`https://bible-api.com/${q}`, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(setData)
-      .catch((err) => console.error("Error fetching verse:", err));
+      .catch((err) => {
+        console.error("Error fetching verse:", err);
+        setData({ verses: [], error: String(err) });
+      })
+      .finally(() => clearTimeout(id));
+
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [book, chapter]);
 
   return (
     <SafeAreaView style={styles.page}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backBtnText}>← Back</Text>
-      </Pressable>
+      <TopBar navigation={navigation} route={route} />
       <ScrollView>
-        <Text style={styles.sectionTitle}>{book} {chapter}</Text>
+        <Text style={styles.sectionTitle}>
+          {book} {chapter}
+        </Text>
         {!data ? (
           <ActivityIndicator size="large" color="#00f2ea" />
+        ) : data.error ? (
+          <Text style={{ color: "#f88", marginTop: 12 }}>
+            Failed to load {book} {chapter}. Please try again.
+          </Text>
         ) : (
-          data.verses.map((v) => (
-            <Text key={v.verse} style={{ color: "#fff", marginVertical: 4 }}>
-              <Text style={{ fontWeight: "bold" }}>{v.verse} </Text>
-              {v.text.trim()}
+          (data.verses || []).map((v) => (
+            <Text key={v.verse} style={styles.verse}>
+              <Text style={styles.verseNumber}>{v.verse} </Text>
+              {String(v.text || "").trim()}
             </Text>
           ))
         )}
@@ -160,7 +280,6 @@ function VerseScreen({ route, navigation }) {
   );
 }
 
-// App container
 export default function App() {
   return (
     <NavigationContainer>
