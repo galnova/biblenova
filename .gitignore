@@ -6,7 +6,8 @@
 # -------------------
 # Xcode / iOS
 # -------------------
-build/
+ios/build/
+ios/DerivedData/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -18,15 +19,21 @@ build/
 xcuserdata
 *.xccheckout
 *.moved-aside
-DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
 **/.xcode.env.local
+ios/Pods/
+*.xcarchive
 
 # -------------------
 # Android / IntelliJ
 # -------------------
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/.cxx/
 build/
 .idea
 .gradle
@@ -36,6 +43,8 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+*.jks
+*.p12
 .kotlin/
 
 # -------------------
@@ -45,6 +54,11 @@ node_modules/
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+dist/
+tmp/
+temp/
+*.tmp
+*.temp
 
 # -------------------
 # Metro Bundler
@@ -67,11 +81,12 @@ pnpm-debug.log*
 # Bundle artifacts
 # -------------------
 *.jsbundle
+*.apk
+*.aab
 
 # -------------------
 # Ruby / CocoaPods
 # -------------------
-**/Pods/
 /vendor/bundle/
 
 # -------------------
@@ -94,6 +109,11 @@ pnpm-debug.log*
 # -------------------
 .vscode/
 Thumbs.db
+
+# -------------------
+# Watchman
+# -------------------
+.watchmanconfig
 
 # -------------------
 # Environment files
