@@ -25,6 +25,10 @@ xcuserdata
 **/.xcode.env.local
 ios/Pods/
 *.xcarchive
+# iOS bundle outputs (if you ever bundle locally)
+ios/main.jsbundle
+ios/main.jsbundle.map
+ios/main.jsbundle.meta
 
 # -------------------
 # Android / IntelliJ
@@ -46,6 +50,10 @@ local.properties
 *.jks
 *.p12
 .kotlin/
+# Android JS bundle outputs (generated when bundling)
+android/app/src/main/assets/index.android.bundle
+android/app/src/main/assets/index.android.bundle.map
+android/app/src/main/assets/index.android.bundle.meta
 
 # -------------------
 # Node.js
@@ -59,6 +67,9 @@ tmp/
 temp/
 *.tmp
 *.temp
+# JS/TS tool caches
+.eslintcache
+*.tsbuildinfo
 
 # -------------------
 # Metro Bundler
@@ -114,6 +125,7 @@ Thumbs.db
 # Watchman
 # -------------------
 .watchmanconfig
+.watchman
 
 # -------------------
 # Environment files

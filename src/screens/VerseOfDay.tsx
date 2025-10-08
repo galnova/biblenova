@@ -10,9 +10,12 @@ import {
 } from "react-native";
 import styles from "../../styles";
 import TopBar from "../components/TopBar";
+import RightDrawer from "../components/RightDrawer";
 import { pickVOD } from "../utils/pickVOD";
 
 export default function VerseOfDayScreen({ navigation, route }: any) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const reference = useMemo(() => pickVOD(new Date()), []);
   const [data, setData] = useState<any>(null);
 
@@ -55,12 +58,15 @@ export default function VerseOfDayScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={styles.page}>
-      {/* Stays at the very top */}
-      <TopBar navigation={navigation} route={route} />
+      {/* Top bar stays fixed; hamburger opens the slide-out */}
+      <TopBar
+        navigation={navigation}
+        route={route}
+        onHamburgerPress={() => setDrawerOpen(true)}
+      />
 
-      {/* Split: scrollable center + fixed footer */}
+      {/* Body: scrollable center + fixed footer */}
       <View style={styles.pageBody}>
-        {/* Center the verse + primary CTA vertically */}
         <ScrollView contentContainerStyle={[styles.vodScrollContent, styles.centerArea]}>
           <Text style={[styles.h1, styles.vodTitle]}>✨ Verse of the Day</Text>
           <Text style={styles.vodReference}>{reference}</Text>
@@ -96,7 +102,7 @@ export default function VerseOfDayScreen({ navigation, route }: any) {
           </Pressable>
         </ScrollView>
 
-        {/* Fixed footer with two side-by-side CTAs */}
+        {/* Footer CTAs */}
         <View style={styles.footer}>
           <View style={styles.buttonRowUnder}>
             <Pressable
@@ -115,6 +121,13 @@ export default function VerseOfDayScreen({ navigation, route }: any) {
           </View>
         </View>
       </View>
+
+      {/* Slide-out drawer overlay */}
+      <RightDrawer
+        visible={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 }

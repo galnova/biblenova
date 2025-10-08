@@ -1,3 +1,4 @@
+// styles.ts
 import { StyleSheet, Platform, StatusBar, Dimensions } from "react-native";
 
 /* ------------------------------------------------------------------ */
@@ -238,8 +239,21 @@ export default StyleSheet.create({
   btnSecondary: { backgroundColor: COLORS.ctaSecondary },
   btnSuccess: { backgroundColor: COLORS.ctaSuccess },
 
+  // Tertiary button (used for Share)
+  btnTertiary: {
+    backgroundColor: "#374151", // neutral gray for contrast
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
   btnTextDark: {
     color: COLORS.btnTextDark,
+    fontWeight: "bold",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  btnTextLight: {
+    color: COLORS.textPrimary,
     fontWeight: "bold",
     fontSize: 16,
     textAlign: "center",
@@ -277,4 +291,111 @@ export default StyleSheet.create({
   listContent: { paddingHorizontal: 16, paddingBottom: 24 },
   loadingWrap: { padding: 16 },
   emptyWrap: { paddingHorizontal: 16, paddingVertical: 8 },
+
+  /* ------------------------- My Journey styles ------------------------ */
+  journeyItem: {
+    backgroundColor: "#171717",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  journeyHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  journeyHeaderIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  journeyIconBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    minHeight: 0,
+    marginLeft: 8,
+  },
+  journeyRef: {
+    color: COLORS.textPrimary,
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  journeyText: {
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+  },
+  journeyMeta: {
+    color: "#A3A3A3",
+    marginTop: 6,
+    fontSize: 12,
+  },
+/* ---------- RightDrawer (slide-out) ---------- */
+drawerContainer: {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  zIndex: 1000,
+},
+drawerOverlay: {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: "rgba(0,0,0,0.45)",
+},
+drawerPanel: {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  right: 0,
+  width: Math.min(320, Dimensions.get("window").width * 0.85),
+  backgroundColor: "#121212",
+  borderLeftWidth: 1,
+  borderLeftColor: "#2A2A2A",
+  paddingHorizontal: 16,
+},
+drawerSafe: {
+  flex: 1,
+  paddingTop: 12,
+},
+drawerTitle: {
+  color: "#FFFFFF",
+  fontSize: 20,
+  fontWeight: "700",
+  marginBottom: 16,
+},
+drawerItem: {
+  paddingVertical: 12,
+  borderBottomWidth: 1,
+  borderBottomColor: "#1F1F1F",
+},
+drawerItemText: {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "600",
+},
+drawerDivider: {
+  height: 1,
+  backgroundColor: "#2A2A2A",
+  marginTop: 12,
+  marginBottom: 8,
+},
+drawerDanger: {
+  // no extra bg to keep it simple; you can add
+},
+drawerDangerText: {
+  color: "#F87171",
+  fontSize: 16,
+  fontWeight: "700",
+},
+drawerFooterSpace: {
+  flex: 1,
+},
+
 });
