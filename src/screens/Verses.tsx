@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import styles from "../../styles";
 import TopBar from "../components/TopBar";
-import Journal from "../utils/journal"; // ⬅ default import
+import Journal from "../utils/journal"; // default import
 
 type Verse = { verse: number; text: string; chapter?: number; book_name?: string };
 type ApiResp = {
@@ -20,6 +20,14 @@ type ApiResp = {
   reference?: string;
   translation_name?: string;
 };
+
+// --- helpers for single-verse actions ---
+function refForSingle(book: string, chapter: number, vNum: number) {
+  return `${book} ${chapter}:${vNum}`;
+}
+function clean(text?: string) {
+  return String(text || "").trim();
+}
 
 export default function VerseScreen({ route, navigation }: any) {
   const { book, chapter, targetVerse } = (route.params ?? {}) as {
@@ -77,7 +85,7 @@ export default function VerseScreen({ route, navigation }: any) {
     return { ref, text };
   };
 
-  // Save (secondary)
+  // Save whole chapter / selected targetVerse (top buttons)
   const onSaveToJourney = useCallback(async () => {
     try {
       const { ref, text } = buildRefAndText();
@@ -85,19 +93,49 @@ export default function VerseScreen({ route, navigation }: any) {
         Alert.alert("Nothing to save", "Try again after the text loads.");
         return;
       }
-      await Journal.saveJournalEntry({ ref, text }); // ⬅ uses default import
+      await Journal.saveJournalEntry({ ref, text });
       Alert.alert("Saved", `"${ref}" was saved to My Journey.`);
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Could not save.");
     }
   }, [data, book, chapter, targetVerse]);
 
-  // Share (tertiary)
+  // Share whole chapter / selected targetVerse (top buttons)
   const onShare = useCallback(() => {
     const { ref, text } = buildRefAndText();
     if (!text) return;
     Share.share({ message: `${ref}\n\n${text}`, title: ref }).catch(() => {});
   }, [data, book, chapter, targetVerse]);
+
+  // NEW: Long-press a single verse → Save/Share dialog for that verse only
+  const onLongPressVerse = useCallback(
+    (vNum: number, vText: string) => {
+      const ref = refForSingle(book, chapter, vNum);
+      const text = clean(vText);
+
+      Alert.alert(ref, text.slice(0, 140) + (text.length > 140 ? "…" : ""), [
+        {
+          text: "Save to My Journey",
+          onPress: async () => {
+            try {
+              await Journal.saveJournalEntry({ ref, text });
+              Alert.alert("Saved", `"${ref}" was saved to My Journey.`);
+            } catch (e: any) {
+              Alert.alert("Error", e?.message ?? "Could not save.");
+            }
+          },
+        },
+        {
+          text: "Share",
+          onPress: () => {
+            Share.share({ message: `${ref}\n\n${text}`, title: ref }).catch(() => {});
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    },
+    [book, chapter]
+  );
 
   return (
     <SafeAreaView style={styles.page}>
@@ -138,18 +176,23 @@ export default function VerseScreen({ route, navigation }: any) {
             Failed to load {book} {chapter}. Please try again.
           </Text>
         ) : (
+          // ONLY change below: each verse is pressable for LONG-PRESS menu
           (data.verses ?? []).map((v) => (
-            <Text key={v.verse} style={styles.verse}>
-              <Text style={styles.verseNumber}>{v.verse} </Text>
-              {String(v.text || "").trim()}
-            </Text>
+            <Pressable
+              key={v.verse}
+              onLongPress={() => onLongPressVerse(v.verse, String(v.text || ""))}
+              delayLongPress={250}
+            >
+              <Text style={styles.verse}>
+                <Text style={styles.verseNumber}>{v.verse} </Text>
+                {String(v.text || "").trim()}
+              </Text>
+            </Pressable>
           ))
         )}
 
         {!isError && (data as ApiResp)?.translation_name ? (
-          <Text style={styles.mutedText}>
-            {(data as ApiResp).translation_name}
-          </Text>
+          <Text style={styles.mutedText}>{(data as ApiResp).translation_name}</Text>
         ) : null}
       </ScrollView>
     </SafeAreaView>
