@@ -38,6 +38,10 @@ export default function VerseScreen({ route, navigation }: any) {
 
   const [data, setData] = useState<ApiResp | { error: string } | null>(null);
 
+  // NEW: local highlight map for quick lookups (e.g., { "John 3:16": { color, createdAt, noteId? } })
+  const [highlights, setHighlights] = useState<Record<string, any>>({});
+
+  // Load chapter
   useEffect(() => {
     const apiBook = book === "Song of Solomon" ? "Song of Songs" : book;
     const q = encodeURIComponent(`${apiBook} ${chapter}`);
@@ -61,6 +65,18 @@ export default function VerseScreen({ route, navigation }: any) {
     return () => {
       clearTimeout(timer);
       controller.abort();
+    };
+  }, [book, chapter]);
+
+  // Load highlights for fast checks
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const map = await Journal.loadHighlights();
+      if (mounted) setHighlights(map || {});
+    })();
+    return () => {
+      mounted = false;
     };
   }, [book, chapter]);
 
@@ -107,34 +123,76 @@ export default function VerseScreen({ route, navigation }: any) {
     Share.share({ message: `${ref}\n\n${text}`, title: ref }).catch(() => {});
   }, [data, book, chapter, targetVerse]);
 
-  // NEW: Long-press a single verse → Save/Share dialog for that verse only
+  // Long-press a single verse → Highlight / Remove Highlight / Save / Share
   const onLongPressVerse = useCallback(
     (vNum: number, vText: string) => {
       const ref = refForSingle(book, chapter, vNum);
       const text = clean(vText);
+      const isHighlighted = !!highlights[ref];
 
-      Alert.alert(ref, text.slice(0, 140) + (text.length > 140 ? "…" : ""), [
-        {
-          text: "Save to My Journey",
+      const actions: { text: string; style?: any; onPress?: () => void }[] = [];
+
+      // Toggle highlight
+      if (isHighlighted) {
+        actions.push({
+          text: "Remove Highlight",
+          style: "destructive",
           onPress: async () => {
-            try {
-              await Journal.saveJournalEntry({ ref, text });
-              Alert.alert("Saved", `"${ref}" was saved to My Journey.`);
-            } catch (e: any) {
-              Alert.alert("Error", e?.message ?? "Could not save.");
+            await Journal.removeHighlight(ref);
+            setHighlights((prev) => {
+              const next = { ...prev };
+              delete next[ref];
+              return next;
+            });
+          },
+        });
+      } else {
+        actions.push({
+          text: "Highlight",
+          onPress: async () => {
+            await Journal.setHighlight(ref, { color: "yellow" });
+            setHighlights((prev) => ({
+              ...prev,
+              [ref]: { color: "yellow", createdAt: Date.now() },
+            }));
+          },
+        });
+      }
+
+      // Save to My Journey (links to highlight if present)
+      actions.push({
+        text: "Save to My Journey",
+        onPress: async () => {
+          try {
+            const entry = await Journal.saveJournalEntry({ ref, text });
+            if (highlights[ref]) {
+              await Journal.linkNoteToHighlight(ref, entry.id);
+              setHighlights((prev) => ({
+                ...prev,
+                [ref]: { ...prev[ref], noteId: entry.id },
+              }));
             }
-          },
+            Alert.alert("Saved", `"${ref}" was saved to My Journey.`);
+          } catch (e: any) {
+            Alert.alert("Error", e?.message ?? "Could not save.");
+          }
         },
-        {
-          text: "Share",
-          onPress: () => {
-            Share.share({ message: `${ref}\n\n${text}`, title: ref }).catch(() => {});
-          },
+      });
+
+      // Share
+      actions.push({
+        text: "Share",
+        onPress: () => {
+          Share.share({ message: `${ref}\n\n${text}`, title: ref }).catch(() => {});
         },
-        { text: "Cancel", style: "cancel" },
-      ]);
+      });
+
+      // Cancel
+      actions.push({ text: "Cancel", style: "cancel" });
+
+      Alert.alert(ref, text.slice(0, 140) + (text.length > 140 ? "…" : ""), actions);
     },
-    [book, chapter]
+    [book, chapter, highlights]
   );
 
   return (
@@ -176,19 +234,22 @@ export default function VerseScreen({ route, navigation }: any) {
             Failed to load {book} {chapter}. Please try again.
           </Text>
         ) : (
-          // ONLY change below: each verse is pressable for LONG-PRESS menu
-          (data.verses ?? []).map((v) => (
-            <Pressable
-              key={v.verse}
-              onLongPress={() => onLongPressVerse(v.verse, String(v.text || ""))}
-              delayLongPress={250}
-            >
-              <Text style={styles.verse}>
-                <Text style={styles.verseNumber}>{v.verse} </Text>
-                {String(v.text || "").trim()}
-              </Text>
-            </Pressable>
-          ))
+          (data.verses ?? []).map((v) => {
+            const ref = refForSingle(book, chapter, v.verse);
+            const isHighlighted = !!highlights[ref];
+            return (
+              <Pressable
+                key={v.verse}
+                onLongPress={() => onLongPressVerse(v.verse, String(v.text || ""))}
+                delayLongPress={250}
+              >
+                <Text style={[styles.verse, isHighlighted && styles.verseHighlighted]}>
+                  <Text style={styles.verseNumber}>{v.verse} </Text>
+                  {String(v.text || "").trim()}
+                </Text>
+              </Pressable>
+            );
+          })
         )}
 
         {!isError && (data as ApiResp)?.translation_name ? (

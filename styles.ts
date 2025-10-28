@@ -189,6 +189,22 @@ export default StyleSheet.create({
     fontWeight: "bold",
     marginRight: 8,
   },
+  // --- Highlighted verse styles ---
+  verseHighlighted: {
+    backgroundColor: "rgba(245, 158, 11, 0.18)", // amber/yellow, subtle
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.ctaSecondary,        // same amber you use elsewhere
+    paddingLeft: 10,
+    borderRadius: 6,
+  },
+  // Optional: slightly stronger for a brief emphasis when navigating from Journal
+  verseHighlightedPulse: {
+    backgroundColor: "rgba(245, 158, 11, 0.28)",
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.ctaSecondary,
+    paddingLeft: 10,
+    borderRadius: 6,
+  },
 
   /* ---------------------- Verse of the Day (VOD) ---------------------- */
   vodScrollContent: {
